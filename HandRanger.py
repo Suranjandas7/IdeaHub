@@ -1,39 +1,54 @@
-#DONE: Write a dict like {0:2, 1:3, 2:4 etc} to correspond with hand rankings.
-#DONE: Write a func that creates a numpy chart with x and os to fit a players's range of starting hands.
-
-#To-DO: Provide a written range too. For example A7-A8, K5o-K8o etc...
-
+#Make and Save Poker Hand Ranges
+#using numpy and matplotlib
 
 import numpy as np
 import matplotlib.pyplot as plt
 
 back_board = np.zeros(shape = (13,13), dtype = 'int')
-Specific_Range = np.zeros(shape = (13,13), dtype = 'int')
 
-#loads data from data.dat to numpy 2-d array back_board
-def load_data():
-	f = open('data.dat', 'rb')
-	raw_lines = []
-	for line in f.readlines(): raw_lines.append(line[:-2])
-	for x in xrange(0,13): back_board[x] = raw_lines[x].split('|')
-	f.close()
+class range_maker(object):
+	def __init__(self, name):
+		#loads data from data.dat to numpy 2-d array back_board
+		self.range = np.zeros(shape = (13,13), dtype = 'int')
+		self.name = name
+		f = open('data.dat', 'rb')
+		raw_lines = []
+		for line in f.readlines(): raw_lines.append(line[:-2])
+		for x in xrange(0,13): back_board[x] = raw_lines[x].split('|')
+		f.close()
 
-#makes a specific range based on inputed percentile and stores it in 2D array Specific_Range
-def make_specific_range(percent):
-	hand_range_maximus = (float(percent)/100)*169
-	for x in xrange(0,13): 
-		for y in xrange(0,13):
-			if back_board[x][y] < hand_range_maximus: Specific_Range[x][y] = 1
-			else: Specific_Range[x][y] = 0
+	def translate(self, input):
+		refer = {'A':0,'K':1,'Q':2,'J':3,'T':4,9:5,8:6,7:7,6:8,5:9,4:10,3:11,2:12}
+		output = refer[input]
+		return output
 
-#formats the range to look pretty on screen
-def show_range():
+	#makes a specific range based on inputed percentile and stores it in 2D array Specific_Range
+	def Overall_percentile(self, percent):
+		hand_range_maximus = (float(percent)/100)*169
+		for x in xrange(0,13): 
+			for y in xrange(0,13):
+				if back_board[x][y] < hand_range_maximus: self.range[x][y] = 1
+				else: self.range[x][y] = 0
+
+	def Xxs(self, MainString, OyS):
+	 	if OyS is 1:
+	 		MainString = self.translate(MainString)
+	 		for x in range(MainString,12):
+				self.range[MainString][x+1] = 1
+			for x in range(MainString,0, -1):
+				self.range[x-1][MainString] = 1
+	# 	else:
+	# 		//code here
+
+def show_range(Range):
 	plt.grid(True, linestyle = "-")
 	ax = plt.axes()
 	ax.set_xticks(np.arange(0,15,1))
 	ax.set_yticks(np.arange(0,15,1))
 	ax.plot(xrange(0,13), xrange(0,13), '-g', label = 'DIVIDE')
-	plt.imshow(Specific_Range, cmap = 'prism')
+	plt.style.use('seaborn-whitegrid')
+	plt.title(RM.name)
+	plt.imshow(Range, cmap = 'summer') #summer, blues, autumn_r
 
 	points = []
 	for x in xrange(0,13):
@@ -57,13 +72,17 @@ def show_range():
 	labels[11] = '3'
 	labels[12] = '2'
 	
-	plt.scatter(x,y)
+	plt.scatter(x,y, color = 'gray')
 	ax.set_xticklabels(labels)
 	ax.set_yticklabels(labels)
-	plt.show()		
+	plt.show()
+	plt.close()		
 
-#procedure: 
-load_data()
-make_specific_range(raw_input('Enter percentile : '))
-print Specific_Range
-show_range()
+#main ->
+user_range_name = str(raw_input('Enter name for your range : ')) 
+percentile = float(raw_input('Enter percentile : '))
+
+RM = range_maker(user_range_name)
+RM.Overall_percentile(percentile)
+#RM.Xxs('A', 1)
+show_range(RM.range)
