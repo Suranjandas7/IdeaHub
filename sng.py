@@ -29,7 +29,7 @@ class PokerDataBase(object):
 		c.close()
 		conn.close()
 
-	def read():
+	def read(self):
 		conn = sqlite3.connect('SnG.db')
 		c = conn.cursor()
 		fd = pd.read_sql_query("SELECT * from main_data", conn)
@@ -44,6 +44,7 @@ class PokerDataBase(object):
 		winper = round((float((fd['W'].sum())/float(fd['P'].sum()))),3) * 100
 		Net_Cash = round(float(fd['NetCash'].sum()),2)
 		Per_Game = round(Net_Cash/float(played),2)
+		ForeCast_Labels = self.forecastor(int(played))
 
 		print '\nTotal'
 		print 'Played : ' + played
@@ -51,4 +52,13 @@ class PokerDataBase(object):
 		print 'WinPer : ' + str(winper)
 		print 'NetCash: ' + str(Net_Cash)
 		print 'PerGame: ' + str(Per_Game)
-		print 'Forecast -' + '\n100: ' + str(Per_Game * 100) + ' 150: ' + str(Per_Game * 150) + ' 200: ' + str(Per_Game*200) + ' 250: ' + str(Per_Game*250)
+		print 'Forecast -'
+		print 'Games' + '\t' + 'NetCash Estimated'
+		for x in xrange(0,4): print ForeCast_Labels[x] + '\t' +  str(Per_Game * int(ForeCast_Labels[x]))
+
+	def forecastor(self, games_played):
+		d = round(float(games_played) / float(50),2)
+		elements = []
+		for x in xrange(games_played, games_played + 200,50):
+			elements.append(str(x))
+		return elements
