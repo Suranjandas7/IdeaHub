@@ -1,75 +1,54 @@
-#Suranjan Das Poker SnG Tracker
-import csv
+import sqlite3
+import pandas as pd
 
-class SnG(object):
-	def __init__(self):
-		f = open('config.cfg', 'rb')
-		self.config = f.readlines()
-		self.config = (str(self.config[0]).split(','))
-		self.history = []
-		self.T_matches = self.config[0]
-		self.Name = self.config[1]
-		self.in_stake = self.config[2]
-		self.out_stake = self.config[3]
-		self.Played = 0
-		self.Won = 0
-		self.Lost = 0
-		data = csv.reader(open('data.csv', 'rb'))
-		for a, b, c in data:
-			self.Played = int(a)
-			self.Won = int(b)
-			self.Lost = int(c)
-		self.hist_switch = 0
-		f.close()
-
-	def read_hist(self):
-		k = open('history.dat', 'r')
-		history = k.readlines()
-		history = history[0].split(',')
-		for element in history:
-			self.history.append(element)
-		k.close()
+class PokerDataBase(object):
+	def write(self, initial_write):
+		conn = sqlite3.connect('SnG.db')
+		c = conn.cursor()
+		d = str(raw_input("Enter Date : "))
+		p = float(raw_input("Enter P : "))
+		w = float(raw_input("Enter W : "))
+		l = p-w
+		nc = float(raw_input("Enter NET CASH : "))
+		wp = float(raw_input("Enter WIN PERC : "))
+		ecp = float(raw_input("Enter ECPTOTAL : "))
+		in_s = int(raw_input('Enter in_stake : '))
+		out_s = int(raw_input('Enter out_stake : '))
 		
-	def won_game(self):
-		self.Played += 1
-		self.Won += 1
-		self.hist_switch = 1
+		if initial_write is 1:
+			c.execute('''CREATE TABLE main_data
+		              (d real, P real, W real, L real, NetCash real, WinPer real, ECP real)''')
+		c.execute("INSERT INTO main_data VALUES ({data})".format(data = str(d) + ',' + str(p) + ',' + str(w)+ ',' + str(l)+ ',' +str(nc)+ ',' +str(wp)+ ',' +str(ecp)))
+		
+		if intial_write is 1:
+			c.execute('''CREATE TABLE minor_data
+			 			(in_stake real, out_stake real)''')
+		
+		c.execute("INSERT INTO minor_data VALUES ({data})".format(data = str(in_s) + ',' + str(out_s)))
+		conn.commit()
+		c.close()
+		conn.close()
 
-	def lost_game(self):
-		self.Played += 1
-		self.Lost += 1
+	def read():
+		conn = sqlite3.connect('SnG.db')
+		c = conn.cursor()
+		fd = pd.read_sql_query("SELECT * from main_data", conn)
+		fd2 = pd.read_sql_query("SELECT * from minor_data", conn)
+		print fd
+		print fd2
+		c.close()
+		conn.close()
 
-	def stats(self):
-		GLTP = float(int(self.T_matches) - int(self.Played))
-		c = round(100 - (GLTP/float(self.T_matches)*100),2)
-		win_per = round(float((float(self.Won)/float(self.Played)) * 100),2)
-		cash_won = int(self.out_stake)*int(self.Won)
-		cash_lost = int(self.in_stake)*int(self.Lost)
-		net_cash = cash_won - cash_lost
-		projected_winnings = int(GLTP*(win_per/100)) * int(self.out_stake)  
-		projected_loses = (int(GLTP) - int(GLTP*(win_per/100))) * int(self.in_stake)
-		projected_net = projected_winnings - projected_loses
+		played = str(int(fd['P'].sum()))
+		won = str(int(fd['W'].sum()))
+		winper = round((float((fd['W'].sum())/float(fd['P'].sum()))),3) * 100
+		Net_Cash = round(float(fd['NetCash'].sum()),2)
+		Per_Game = round(Net_Cash/float(played),2)
 
-		print 'CURRENT PROGRESS:' + '\t' + str(c) +'\n\n'
-		print 'Player Name: \t' + str(self.Name)
-		print 'Played: ' + str(self.Played) + '\t' + 'Won: ' + str(self.Won) + '\t' + 'Lost: ' + str(self.Lost) + '\t'
-		print 'Cash won: ' + str(cash_won) + '\t' + 'Cash lost: ' + str(cash_lost)
-		print 'Net Cash: ' + str(net_cash)
-		print '\n'
-		print 'Current Win Rate: ' + str(win_per)
-		print '\n'
-		print 'Projected_net: ' + str(projected_net)
-		print 'AWP: ' + str(int(net_cash) + int(projected_net))
-
-	def write_to_data(self):
-		writer = csv.writer(open('data.csv', 'w', buffering = 0))
-		writer.writerows([(self.Played, self.Won, self.Lost)])
-		k = open('history.dat', 'w')
-		if self.hist_switch is 1:
-			self.history.append('W')
-		else:
-			self.history.append('L')
-		for element in self.history:
-			k.write(str(element)+',')
-		hist_switch = 0
-		k.close()
+		print '\nTotal'
+		print 'Played : ' + played
+		print 'Won    : ' + won
+		print 'WinPer : ' + str(winper)
+		print 'NetCash: ' + str(Net_Cash)
+		print 'PerGame: ' + str(Per_Game)
+		print 'Forecast -' + '\n100: ' + str(Per_Game * 100) + ' 150: ' + str(Per_Game * 150) + ' 200: ' + str(Per_Game*200) + ' 250: ' + str(Per_Game*250)
