@@ -25,7 +25,7 @@ class PokerDataBase(object):
 		              (d real, P real, W real, L real, NetCash real, WinPer real)''')
 		
 		c.execute("INSERT INTO main_data VALUES ({data})".format(data = str(d) + ',' + str(p) + ',' + str(w) 
-																+ ',' + str(l)+ ',' +str(nc)+ ',' +str(wp)))
+		+ ',' + str(l)+ ',' +str(nc)+ ',' +str(wp)))
 		
 		if initial_write is 1:
 			c.execute('''CREATE TABLE minor_data
