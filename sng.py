@@ -1,3 +1,5 @@
+#TO-DO: Get MatplotLib up in this shit.
+
 import sqlite3
 import pandas as pd
 
@@ -5,26 +7,31 @@ class PokerDataBase(object):
 	def write(self, initial_write):
 		conn = sqlite3.connect('SnG.db')
 		c = conn.cursor()
+		
 		d = str(raw_input("Enter Date : "))
 		p = float(raw_input("Enter P : "))
 		w = float(raw_input("Enter W : "))
+		
 		l = p-w
+		
 		nc = float(raw_input("Enter NET CASH : "))
 		wp = float(raw_input("Enter WIN PERC : "))
-		ecp = float(raw_input("Enter ECPTOTAL : "))
+		
 		in_s = int(raw_input('Enter in_stake : '))
 		out_s = int(raw_input('Enter out_stake : '))
 		
 		if initial_write is 1:
 			c.execute('''CREATE TABLE main_data
-		              (d real, P real, W real, L real, NetCash real, WinPer real, ECP real)''')
-		c.execute("INSERT INTO main_data VALUES ({data})".format(data = str(d) + ',' + str(p) + ',' + str(w)+ ',' + str(l)+ ',' +str(nc)+ ',' +str(wp)+ ',' +str(ecp)))
+		              (d real, P real, W real, L real, NetCash real, WinPer real)''')
 		
-		if intial_write is 1:
+		c.execute("INSERT INTO main_data VALUES ({data})".format(data = str(d) + ',' + str(p) + ',' + str(w)+ ',' + str(l)+ ',' +str(nc)+ ',' +str(wp)))
+		
+		if initial_write is 1:
 			c.execute('''CREATE TABLE minor_data
 			 			(in_stake real, out_stake real)''')
 		
 		c.execute("INSERT INTO minor_data VALUES ({data})".format(data = str(in_s) + ',' + str(out_s)))
+		
 		conn.commit()
 		c.close()
 		conn.close()
@@ -49,7 +56,7 @@ class PokerDataBase(object):
 		print '\nTotal'
 		print 'Played : ' + played
 		print 'Won    : ' + won
-		print 'WinPer : ' + str(winper)
+		print 'WinPerG: ' + str(winper)
 		print 'NetCash: ' + str(Net_Cash)
 		print 'PerGame: ' + str(Per_Game)
 		print 'Forecast -'
