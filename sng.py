@@ -2,16 +2,22 @@ import sqlite3
 import pandas as pd
 import matplotlib.pyplot as plt 
 
-from calc import *
-
 class PokerDataBase(object):
-	# def display_winper(self):
-	# 	conn = sqlite3.connect('SnG.db')
-	# 	c = conn.cursor()
-	# 	fd = pd.read_sql_query("SELECT * from main_data", conn)
-	# 	values = fd['WinPer'].tolist()
-	# 	c.close()
-	# 	conn.close()
+	def display_winper(self):
+		conn = sqlite3.connect('SnG.db')
+		c = conn.cursor()
+		fd = pd.read_sql_query("SELECT * from main_data", conn)
+		values = fd['WinPer'].tolist()
+		values2 = fd['NetCash'].tolist()
+		c.close()
+		conn.close()
+
+		plt.style.use('dark_background')
+		plt.plot(values, '-g')
+		plt.plot(values2, '-r')
+		plt.ylabel('Win Percentage')
+		plt.xlabel('Sessions')
+		plt.show()
 
 	def write(self, initial_write):	
 		def return_stats(config):
@@ -82,7 +88,9 @@ class PokerDataBase(object):
 		conn = sqlite3.connect('SnG.db')
 		c = conn.cursor()
 		fd = pd.read_sql_query("SELECT * from main_data", conn)
+		fd2 = pd.read_sql_query("SELECT * from minor_data", conn)
 		print fd
+		print fd2
 		
 		c.close()
 		conn.close()
