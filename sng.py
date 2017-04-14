@@ -1,23 +1,46 @@
 import sqlite3
 import pandas as pd
 import matplotlib.pyplot as plt 
+import collections
+
+plt.style.use('bmh')
 
 class PokerDataBase(object):
-	def display_winper(self):
+	def display(self):
 		conn = sqlite3.connect('SnG.db')
 		c = conn.cursor()
 		fd = pd.read_sql_query("SELECT * from main_data", conn)
-		values = fd['WinPer'].tolist()
-		values2 = fd['NetCash'].tolist()
+		values_winper = fd['WinPer'].tolist()
+		values_netcash = fd['NetCash'].tolist()
 		c.close()
 		conn.close()
 
-		plt.style.use('dark_background')
-		plt.plot(values, '-g')
-		plt.plot(values2, '-r')
-		plt.ylabel('Win Percentage')
+		values_accumulated_netcash = []
+		accumulation = 0
+		for value in values_netcash:
+			accumulation = accumulation + float(value)
+			values_accumulated_netcash.append(accumulation)
+		plt.title('WinPer and NetCash')
+		plt.plot(values_winper, '-b', label = 'Win Percentage')
+		plt.plot(values_accumulated_netcash, '-g', label = 'Cash Won')
+		plt.ylabel('NetCash')
 		plt.xlabel('Sessions')
+		plt.legend(loc='best')
 		plt.show()
+
+	def display_daily(self):
+		conn = sqlite3.connect('SnG.db')
+		c = conn.cursor()
+		fd = pd.read_sql_query("SELECT * from main_data", conn)
+		Date_Money_Tuple = fd[['d', 'NetCash']].apply(tuple, axis = 1)
+		c.close()
+		conn.close()
+		
+		dates_and_sessions = []
+
+		for element in Date_Money_Tuple:
+			 dates_and_sessions.append(element[0])
+		print collections.Counter(dates_and_sessions)
 
 	def write(self, initial_write):	
 		def return_stats(config):
@@ -111,4 +134,4 @@ class PokerDataBase(object):
 		print 'Forecast -'
 		print 'Games' + '\t' + 'NetCash Estimated'
 		for x in xrange(0,4): print ForeCast_Labels[x] + '\t' +  str(Per_Game * 
-														int(ForeCast_Labels[x]))
+		int(ForeCast_Labels[x]))
