@@ -3,45 +3,57 @@ import pandas as pd
 import matplotlib.pyplot as plt 
 import collections
 
-plt.style.use('bmh')
+plt.style.use('seaborn-darkgrid')
 
-class PokerDataBase(object):
-	def display(self):
-		conn = sqlite3.connect('SnG.db')
-		c = conn.cursor()
-		fd = pd.read_sql_query("SELECT * from main_data", conn)
+class Display(object):
+	def __init__(self):
+		self.conn = sqlite3.connect('SnG.db')
+		self.cursor = self.conn.cursor()
+	
+	def close_connection(self):
+		self.cursor.close()
+		self.conn.close()
+
+	def WPNC(self):
+		fd = pd.read_sql_query("SELECT * from main_data", self.conn)
 		values_winper = fd['WinPer'].tolist()
 		values_netcash = fd['NetCash'].tolist()
-		c.close()
-		conn.close()
-
 		values_accumulated_netcash = []
 		accumulation = 0
 		for value in values_netcash:
 			accumulation = accumulation + float(value)
 			values_accumulated_netcash.append(accumulation)
 		plt.title('WinPer and NetCash')
-		plt.plot(values_winper, '-b', label = 'Win Percentage')
+		plt.plot(values_winper, ':b', alpha = 0.95, label = 'Win Percentage')
 		plt.plot(values_accumulated_netcash, '-g', label = 'Cash Won')
-		plt.ylabel('NetCash')
+		plt.ylabel('Net Cash')
 		plt.xlabel('Sessions')
 		plt.legend(loc='best')
 		plt.show()
+		self.close_connection()
 
-	def display_daily(self):
-		conn = sqlite3.connect('SnG.db')
-		c = conn.cursor()
+	def DAILY(self):
 		fd = pd.read_sql_query("SELECT * from main_data", conn)
 		Date_Money_Tuple = fd[['d', 'NetCash']].apply(tuple, axis = 1)
-		c.close()
-		conn.close()
-		
 		dates_and_sessions = []
-
 		for element in Date_Money_Tuple:
 			 dates_and_sessions.append(element[0])
-		print collections.Counter(dates_and_sessions)
+		k = collections.Counter(dates_and_sessions)
+		days = []
+		days_money = []
+		for date in k:
+			days.append(date)
+		for m in days:
+			amoney = 0
+			for k in Date_Money_Tuple:
+				if k[0] is m:
+					amoney += k[1]
+			days_money.append(amoney)
+		print days
+		print days_money
+		self.close_connection()
 
+class Database(object):
 	def write(self, initial_write):	
 		def return_stats(config):
 			T_matches = config[0]
@@ -53,14 +65,7 @@ class PokerDataBase(object):
 			GLTP = float(int(T_matches) - int(Played))
 			c = round(100 - (GLTP/float(T_matches)*100),2)
 			win_per = round(float((float(Won)/float(Played)) * 100),2)
-			cash_won = int(out_stake)*int(Won)
-			cash_lost = int(in_stake)*int(Lost)
-			net_cash = cash_won - cash_lost
-			projected_winnings = int(GLTP*(win_per/100)) * int(out_stake)  
-			projected_loses = (int(GLTP) - int(GLTP*(win_per/100))) * int(in_stake)
-			projected_net = projected_winnings - projected_loses
-			worst_ECP = -int(GLTP * int(in_stake)) + net_cash
-			best_ECP = int(GLTP * int(out_stake)) + net_cash
+			net_cash = int(out_stake)*int(Won) - int(in_stake)*int(Lost)
 			return net_cash, win_per
 
 		conn = sqlite3.connect('SnG.db')
