@@ -24,7 +24,7 @@ class Display(object):
 			accumulation = accumulation + float(value)
 			values_accumulated_netcash.append(accumulation)
 		plt.title('WinPer and NetCash')
-		plt.plot(values_winper, ':b', alpha = 0.95, label = 'Win Percentage')
+		plt.plot(values_winper, 'b^', alpha = 0.25, label = 'Win Percentage')
 		plt.plot(values_accumulated_netcash, '-g', label = 'Cash Won')
 		plt.ylabel('Net Cash')
 		plt.xlabel('Sessions')
@@ -33,24 +33,54 @@ class Display(object):
 		self.close_connection()
 
 	def DAILY(self):
-		fd = pd.read_sql_query("SELECT * from main_data", conn)
+		fd = pd.read_sql_query("SELECT * from main_data", self.conn)
 		Date_Money_Tuple = fd[['d', 'NetCash']].apply(tuple, axis = 1)
-		dates_and_sessions = []
+		days_raw = []
+		
 		for element in Date_Money_Tuple:
-			 dates_and_sessions.append(element[0])
-		k = collections.Counter(dates_and_sessions)
-		days = []
-		days_money = []
-		for date in k:
-			days.append(date)
-		for m in days:
-			amoney = 0
-			for k in Date_Money_Tuple:
-				if k[0] is m:
-					amoney += k[1]
-			days_money.append(amoney)
-		print days
-		print days_money
+			 days_raw.append(element[0])
+		
+		def sorter(input_array):
+			months_index = {'01':'Jan', '02':'Feb', '03':'Mar', '04':'Apr', '05':'May', 
+			'06':'June', '07':'July', '08':'Aug', '09':'Sep', '10':'Oct', '11':'Nov', '12':'Dec'}
+			number_of_days_in_a_month = {'Jan':31,'Feb':28,'Mar':31,'Apr':30,'May':31,'June':30, 
+			'July':31, 'Aug':31, 'Sep':30, 'Oct':31, 'Nov':30, 'Dec':31}
+			
+			days = []
+			months = []
+			years = []
+			string_list = []
+			
+			for element in input_array:
+				string_list.append(str(int(element)))
+			
+			for element in string_list:
+				if len(element) is 7:
+					days.append(element[0])
+					months.append(element[1:3]) 
+					years.append(element[3:len(element)])
+				if len(element) is 8:
+					days.append(element[0:2])
+					months.append(element[2:4]) 
+					years.append(element[4:len(element)])
+
+			def remove_duplicates(data):
+				counter = collections.Counter(data)
+				for element in data:
+					while counter[element] > 1:
+						data.remove(element)
+						counter = collections.Counter(data)
+				return data
+		
+			number_days = remove_duplicates(days)
+			number_months = remove_duplicates(months)
+			number_years = remove_duplicates(years)
+			text_months = []
+			for element in number_months:
+				text = months_index[element]
+				text_months.append(text)  
+			print text_months
+		sorter(days_raw)
 		self.close_connection()
 
 class Database(object):
