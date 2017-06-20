@@ -87,5 +87,5 @@ class work():
             self.list_of_comments = []
             self.tags = ''
 
-sd = work(10,30)
+sd = work(15,45)
 sd.process()
