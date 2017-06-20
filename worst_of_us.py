@@ -1,10 +1,3 @@
-#Worst_of_us
-#Create database
-# 1. Two tables -> Posts and Comments
-# 2. Posts will have [Title, Tags]
-# 3. Comments will have [Title ID, Text]
-# 4. Cross check to make sure all comments are unique
-
 import sqlite3
 import praw
 
@@ -21,7 +14,7 @@ class work():
         conn = sqlite3.connect('woa.db')
         c = conn.cursor()
         c.execute('''CREATE TABLE Posts
-            (Title text, PostId text, Tags text)'''
+            (Title text, PostId text)'''
         )
         c.execute('''CREATE TABLE Comments
             (Content text, ParentId text, CommentId text)'''
@@ -42,6 +35,28 @@ class work():
                 print '\n'
                 print str(element[0]).encode('utf-8')
             print '\n\nWait for next post...'
+
+        def addtodb(post_title, post_id, list_of_comments):
+            conn = sqlite3.connect('woa.db')
+            c = conn.cursor()
+
+            post_insert = (
+                post_title,
+                post_id,
+            )
+            c.execute("INSERT INTO Posts VALUES (?,?)", post_insert)
+
+            for comment in list_of_comments:
+                comment_insert = (
+                    comment[0],
+                    post_id,
+                    comment[1],
+                )
+                c.execute("INSERT INTO comments VALUES (?,?,?)", comment_insert)
+
+            conn.commit()
+            c.close()
+            conn.close()
 
         reddit = praw.Reddit('bot1')
         subreddit = reddit.subreddit("worldnews")
@@ -64,11 +79,13 @@ class work():
                     self.list_of_comments.append(output)
                     i+=1
 
-                if i = self.limitC:
+                if i == self.limitC:
                     break
-            display(self.title, self.list_of_comments, self.post_id)
+            #display(self.title, self.list_of_comments, self.post_id)
+            addtodb(self.title, self.post_id, self.list_of_comments)
             self.title = ''
             self.list_of_comments = []
-# sd = work()
-# sd.process()
-# sd.display()
+            self.tags = ''
+
+sd = work(10,30)
+sd.process()
