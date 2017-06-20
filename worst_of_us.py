@@ -10,6 +10,34 @@ class work():
         self.post_id = ''
         self.tags = ''
 
+    def read(self):
+        f = open('output.txt', 'w')
+        conn = sqlite3.connect('woa.db')
+        c = conn.cursor()
+        post_dict = {}
+
+        list_of_unique_posts = c.execute(
+            "SELECT DISTINCT Title, PostID from Posts"
+        )
+
+        for post in list_of_unique_posts:
+            post_dict[post[1]] = post[0]
+
+        for key in post_dict:
+            current_parent_id = (key,)
+            f.write('\n\n[Title : {}]\n\n'.format(post_dict[key].encode('utf-8')))
+            list_of_unique_comments = c.execute(
+                "SELECT DISTINCT * from Comments WHERE ParentId=?",
+                current_parent_id
+            )
+            for comment in list_of_unique_comments:
+                f.write('\n{}'.format(comment[0].encode('utf-8')))
+                f.write('\n---END COMMENT---\n')
+
+        f.close()
+        c.close()
+        conn.close()
+
     def create_database(self):
         conn = sqlite3.connect('woa.db')
         c = conn.cursor()
@@ -87,5 +115,20 @@ class work():
             self.list_of_comments = []
             self.tags = ''
 
-sd = work(15,45)
-sd.process()
+def main():
+    flag = False
+    while flag==False:
+        choice = str(raw_input('1 - Read\n2 - Catch\n\nEnter Your Choice : '))
+        if choice == '1':
+            sd = work(0,0)
+            sd.read()
+            flag = True
+        elif choice == '2':
+            sd = work(15,45)
+            sd.process()
+            flag = True
+        else:
+            print 'INVALID OPTION'
+
+if __name__ == '__main__':
+    main()
