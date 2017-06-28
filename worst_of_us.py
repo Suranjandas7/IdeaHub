@@ -1,5 +1,7 @@
 import sqlite3
 import praw
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
 
 class work():
     def __init__(self, limitP, limitC):
@@ -9,6 +11,27 @@ class work():
         self.limitC = limitC
         self.post_id = ''
         self.tags = ''
+
+    def make_wordcloud(self, w, h):
+        conn = sqlite3.connect('woa.db')
+        c = conn.cursor()
+        lines = c.execute("SELECT DISTINCT * from Comments")
+        all_text = []
+        s = ''
+
+        for l in lines:
+            all_text.append(l[0].encode('utf-8'))
+        for at in all_text:
+            s = s+at
+
+        wordcloud = WordCloud(
+            width=w,
+            height=h,
+        ).generate(s)
+
+        plt.imshow(wordcloud)
+        plt.axis('off')
+        plt.show()
 
     def read(self):
         f = open('output.txt', 'w')
@@ -118,7 +141,7 @@ class work():
 def main():
     flag = False
     while flag==False:
-        choice = str(raw_input('1 - Read\n2 - Catch\n\nEnter Your Choice : '))
+        choice = str(raw_input('1 - Read\n2 - Catch\n3 - WordCloud\n\nEnter Your Choice : '))
         if choice == '1':
             sd = work(0,0)
             sd.read()
@@ -126,6 +149,10 @@ def main():
         elif choice == '2':
             sd = work(15,45)
             sd.process()
+            flag = True
+        elif choice == '3':
+            sd = work(0,0)
+            sd.make_wordcloud(1920,1080)
             flag = True
         else:
             print 'INVALID OPTION'
