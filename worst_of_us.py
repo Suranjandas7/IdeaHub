@@ -29,6 +29,9 @@ class work():
             height=h,
         ).generate(s)
 
+        c.close()
+        conn.close()
+
         plt.imshow(wordcloud)
         plt.axis('off')
         plt.show()
@@ -133,6 +136,7 @@ class work():
                 if i == self.limitC:
                     break
             #display(self.title, self.list_of_comments, self.post_id)
+            print '[Writing to database]'
             addtodb(self.title, self.post_id, self.list_of_comments)
             self.title = ''
             self.list_of_comments = []
