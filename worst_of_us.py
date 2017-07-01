@@ -114,6 +114,7 @@ class work():
 
         reddit = praw.Reddit('bot1')
         subreddit = reddit.subreddit("worldnews")
+        counter = 0
         for s in subreddit.hot(limit=self.limitP):
             submission = s
             submission.comment_sort = 'controversial'
@@ -136,7 +137,10 @@ class work():
                 if i == self.limitC:
                     break
             #display(self.title, self.list_of_comments, self.post_id)
-            print '[Writing to database]'
+            counter +=1
+            print '[Writing to database]\t {} out of {}'.format(
+                str(counter),
+                str(self.limitP))
             addtodb(self.title, self.post_id, self.list_of_comments)
             self.title = ''
             self.list_of_comments = []
