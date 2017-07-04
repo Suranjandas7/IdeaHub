@@ -12,6 +12,29 @@ class work():
         self.post_id = ''
         self.tags = ''
 
+    def data_count(self):
+        def control(mode):
+            def shortcut(data):
+                container = []
+                for lines in data:
+                    container.append(lines)
+                return len(container)
+
+            conn = sqlite3.connect('woa.db')
+            c = conn.cursor()
+            data = c.execute("SELECT DISTINCT * from {}".format(mode))
+            count = shortcut(data)
+            c.close()
+            conn.close()
+            return count
+
+        no_of_comments = control('Comments')
+        no_of_posts = control('Posts')
+
+        print 'No of Posts - {}\nNo of comments - {}'.format(
+                                                        no_of_posts,
+                                                        no_of_comments)
+
     def make_wordcloud(self, w, h):
         conn = sqlite3.connect('woa.db')
         c = conn.cursor()
@@ -149,18 +172,30 @@ class work():
 def main():
     flag = False
     while flag==False:
-        choice = str(raw_input('1 - Read\n2 - Catch\n3 - WordCloud\n\nEnter Your Choice : '))
+        choice = str(raw_input('''
+            1 - Read
+            2 - Catch
+            3 - WordCloud
+            4 - DataCount
+
+
+            'Exit' - Exit
+
+            Enter Your Choice :
+            '''))
         if choice == '1':
             sd = work(0,0)
             sd.read()
-            flag = True
         elif choice == '2':
             sd = work(15,45)
             sd.process()
-            flag = True
         elif choice == '3':
             sd = work(0,0)
             sd.make_wordcloud(1920,1080)
+        elif choice == '4':
+            sd = work(0,0)
+            sd.data_count()
+        elif choice == 'Exit':
             flag = True
         else:
             print 'INVALID OPTION'
