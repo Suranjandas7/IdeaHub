@@ -2,6 +2,7 @@ import sqlite3
 import praw
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
+import configparser
 
 class work():
     def __init__(self, limitP, limitC, database_name, r_name, c_type):
@@ -91,7 +92,7 @@ class work():
         conn.close()
 
     def create_database(self):
-        conn = sqlite3.connect(self.database_name)
+        conn = sqlite3.connect(str(self.database_name)+'.db')
         c = conn.cursor()
         c.execute('''CREATE TABLE Posts
             (Title text, PostId text)'''
@@ -161,6 +162,8 @@ class work():
             self.tags = ''
 
 def main():
+    reader = configparser.ConfigParser()
+    reader.read('config.ini')
     flag = False
     while flag==False:
         choice = str(raw_input('''
@@ -168,6 +171,7 @@ def main():
             2 - Catch
             3 - WordCloud
             4 - DataCount
+            5 - Create Database
 
 
             'Exit' - Exit
@@ -175,21 +179,31 @@ def main():
             Enter Your Choice :
             '''))
         if choice == '1':
-            sd = work(0,0, 'woa.db', 'NA', 'NA')
+            name_of_db = str(raw_input('Enter name of db : '))
+            sd = work(0,0, name_of_db, 'NA', 'NA')
             sd.read()
         elif choice == '2':
-            sd = work(15,45, 'woa.db', 'worldnews', 'controversial')
+            name_of_db = str(raw_input('Enter name of db : '))
+            subreddit_name = reader.get(name_of_db, 'subreddit')
+            comment_type = reader.get(name_of_db, 'comments')
+            sd = work(15,45, name_of_db, subreddit_name, comment_type)
             sd.process()
         elif choice == '3':
-            sd = work(0,0, 'woa.db', 'NA', 'NA')
+            name_of_db = str(raw_input('Enter name of db : '))
+            sd = work(0,0, name_of_db, 'NA', 'NA')
             sd.make_wordcloud(1920,1080)
         elif choice == '4':
-            sd = work(0,0, 'woa.db', 'NA', 'NA')
+            name_of_db = str(raw_input('Enter name of db : '))
+            sd = work(0,0, name_of_db, 'NA', 'NA')
             sd.data_count()
+        elif choice == '5':
+            name_of_db = str(raw_input('Enter name of database: '))
+            sd = work(0,0,name_of_db, 'NA', 'NA')
+            sd.create_database()
         elif choice == 'Exit':
             flag = True
         else:
-            print 'INVALID OPTION'
+            print 'INVALID OPTIOEN'
 
 if __name__ == '__main__':
     main()
