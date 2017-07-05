@@ -4,13 +4,16 @@ from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 
 class work():
-    def __init__(self, limitP, limitC):
+    def __init__(self, limitP, limitC, database_name, r_name, c_type):
         self.title = ''
         self.list_of_comments = []
         self.limitP = limitP
         self.limitC = limitC
         self.post_id = ''
         self.tags = ''
+        self.database_name = str(database_name)
+        self.r_name = str(r_name)
+        self.c_type = str(c_type)
 
     def data_count(self):
         def control(mode):
@@ -20,7 +23,7 @@ class work():
                     container.append(lines)
                 return len(container)
 
-            conn = sqlite3.connect('woa.db')
+            conn = sqlite3.connect(self.database_name)
             c = conn.cursor()
             data = c.execute("SELECT DISTINCT * from {}".format(mode))
             count = shortcut(data)
@@ -36,7 +39,7 @@ class work():
                                                         no_of_comments)
 
     def make_wordcloud(self, w, h):
-        conn = sqlite3.connect('woa.db')
+        conn = sqlite3.connect(self.database_name)
         c = conn.cursor()
         lines = c.execute("SELECT DISTINCT * from Comments")
         all_text = []
@@ -61,7 +64,7 @@ class work():
 
     def read(self):
         f = open('output.txt', 'w')
-        conn = sqlite3.connect('woa.db')
+        conn = sqlite3.connect(self.database_name)
         c = conn.cursor()
         post_dict = {}
 
@@ -88,7 +91,7 @@ class work():
         conn.close()
 
     def create_database(self):
-        conn = sqlite3.connect('woa.db')
+        conn = sqlite3.connect(self.database_name)
         c = conn.cursor()
         c.execute('''CREATE TABLE Posts
             (Title text, PostId text)'''
@@ -101,20 +104,8 @@ class work():
         conn.close()
 
     def process(self):
-        def display(title, list_of_comments, postid):
-            print '\nTitle of the Post :'
-            print str(title).encode('utf-8')
-            print '\nPost ID:'
-            print str(postid).encode('utf-8')
-            print '\nMost Controversial Comments:'
-            for element in list_of_comments:
-                raw_input('\nPress enter for next comment...')
-                print '\n'
-                print str(element[0]).encode('utf-8')
-            print '\n\nWait for next post...'
-
         def addtodb(post_title, post_id, list_of_comments):
-            conn = sqlite3.connect('woa.db')
+            conn = sqlite3.connect(self.database_name)
             c = conn.cursor()
 
             post_insert = (
@@ -136,11 +127,11 @@ class work():
             conn.close()
 
         reddit = praw.Reddit('bot1')
-        subreddit = reddit.subreddit("worldnews")
+        subreddit = reddit.subreddit(self.r_name)
         counter = 0
         for s in subreddit.hot(limit=self.limitP):
             submission = s
-            submission.comment_sort = 'controversial'
+            submission.comment_sort = self.c_type
             self.title = submission.title
             self.post_id = submission.id
             comments = s.comments
@@ -184,16 +175,16 @@ def main():
             Enter Your Choice :
             '''))
         if choice == '1':
-            sd = work(0,0)
+            sd = work(0,0, 'woa.db', 'NA', 'NA')
             sd.read()
         elif choice == '2':
-            sd = work(15,45)
+            sd = work(15,45, 'woa.db', 'worldnews', 'controversial')
             sd.process()
         elif choice == '3':
-            sd = work(0,0)
+            sd = work(0,0, 'woa.db', 'NA', 'NA')
             sd.make_wordcloud(1920,1080)
         elif choice == '4':
-            sd = work(0,0)
+            sd = work(0,0, 'woa.db', 'NA', 'NA')
             sd.data_count()
         elif choice == 'Exit':
             flag = True
